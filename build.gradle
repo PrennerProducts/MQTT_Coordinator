@@ -1,19 +1,56 @@
 plugins {
     id 'java'
+    id 'application'
 }
 
-group 'org.example'
-version '1.0-SNAPSHOT'
+version '1.0'
+
+mainClassName = 'com.mci.ais.MQTT_Coordinator'
+
+sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
+    maven {
+        url "https://repo.eclipse.org/content/repositories/paho-snapshots/"
+    }
 }
 
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
+    testImplementation 'org.hamcrest:hamcrest-library:2.2'
+    implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5'
 }
 
 test {
     useJUnitPlatform()
+}
+
+//Creates a Assignment.zip under build/distributions
+task mciSrcZip(type: Zip) {
+    from projectDir
+    include 'src/**/*'
+    include '*.gradle'
+    include 'gradlew'
+    include 'gradlew.bat'
+    include 'gradle/**/*'
+    exclude '.gradle'
+    archiveFileName = "Assignment.zip"
+}
+
+tasks.withType(JavaExec) {
+    if (System.getProperty('DEBUG', 'false') == 'true') {
+        jvmArgs '-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=9099'
+    }
+}
+
+jar {
+    manifest {
+        attributes(
+                'Class-Path': configurations.compileClasspath.collect { it.getName() }.join(' '),
+                'Main-Class': 'com.mci.ais.MQTT_Coordinator'
+        )
+    }
+    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
 }
