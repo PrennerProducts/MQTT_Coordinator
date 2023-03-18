@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Class-Path: org.eclipse.paho.client.mqttv3-1.2.5.jar
+Main-Class: com.mci.ais.MQTT_Coordinator
+
