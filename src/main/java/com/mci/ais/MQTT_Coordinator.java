@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public class MQTT_Coordinator implements MqttCallback {
 
-    private MqttClient mqtt;
+    private final MqttClient mqtt;
     private final long totalDarts = 10000;
     private final long dartsProRequest = 1000;
     private long requestedDarts = 0;
@@ -48,15 +48,19 @@ public class MQTT_Coordinator implements MqttCallback {
                     System.out.println("New request for Darts");
                     String msg;
                     if (totalDarts > requestedDarts) {
-                        long darts = Math.min(totalDarts - requestedDarts, dartsProRequest);
-                        msg = "OK:" + darts;
-                        System.out.println("OK: Worker " + topicparts[2] +" recives: " + darts + " darts");
+                        long darts;
+                        if(totalDarts - requestedDarts >= dartsProRequest){
+                            darts = dartsProRequest;
+                            msg = "OK:" + darts;
+                        }else{
+                            darts = totalDarts - requestedDarts;
+                            msg = "OK:" + darts;
+                        }
                         requestedDarts += darts;
-                        System.out.println("******************** Topicspart[2=)" + topicparts[2]);
+                        System.out.println("OK: Worker gets darts ");
                     }else {
-                        msg = "NOK";
-                        System.out.println("NOK: No more darts available");
-                        Thread.sleep(1000);
+                        msg = "NOK:";
+                        System.out.println("NOK");
                     }
                     MqttMessage sendMessage = new MqttMessage(msg.getBytes());
                     mqtt.publish("worker/" + topicparts[2], sendMessage);
@@ -94,15 +98,13 @@ public class MQTT_Coordinator implements MqttCallback {
     public void work() throws InterruptedException {
         System.out.println("Cordinator listens @localhost:1883 for MQTT messages!");
         while (totalDarts > resultTotal) {
-            Thread.sleep(1000);
-
+            Thread.sleep(500);
         }
+        Thread.sleep(1000);
         // Calculate Pi
         double pi = 4.0 * hitsTotal/totalDarts;
-        System.out.println("###########################################################################");
         System.out.println("###########################____RESULT____##################################");
-        System.out.println("###########################################################################");
-        System.out.println("PI= " + pi);
+        System.out.println("************* ----------     PI= " + pi + "     --------- *********************");
         System.out.println("###########################################################################");
 
     }
